@@ -71,6 +71,7 @@ const App: React.FC = () => {
   const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
   const [pendingPoseIndex, setPendingPoseIndex] = useState<number | null>(null);
   const [isSheetCollapsed, setIsSheetCollapsed] = useState(false);
+  const [isBackgroundPanelCollapsed, setIsBackgroundPanelCollapsed] = useState(false);
   const [wardrobe, setWardrobe] = useState<WardrobeItem[]>(defaultWardrobe);
   const [savedOutfits, setSavedOutfits] = useState<SavedOutfit[]>([]);
   const [currentAspectRatio, setCurrentAspectRatio] = useState('2:3');
@@ -623,6 +624,8 @@ const App: React.FC = () => {
                       onBackgroundChange={handleBackgroundChange}
                       onCustomBackgroundChange={handleCustomBackgroundChange}
                       isLoading={isLoading}
+                      isCollapsed={isBackgroundPanelCollapsed}
+                      onToggleCollapse={() => setIsBackgroundPanelCollapsed(p => !p)}
                     />
                   </div>
               </aside>

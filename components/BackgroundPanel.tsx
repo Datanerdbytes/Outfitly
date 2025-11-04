@@ -3,12 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React, { useState } from 'react';
-import { ImageIcon } from './icons';
+import { ImageIcon, ChevronUpIcon, ChevronDownIcon } from './icons';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BackgroundPanelProps {
   onBackgroundChange: (prompt: string) => void;
   onCustomBackgroundChange: (file: File) => void;
   isLoading: boolean;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 const BACKGROUND_CATEGORIES = [
@@ -49,7 +52,7 @@ const BACKGROUND_CATEGORIES = [
   }
 ];
 
-const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onBackgroundChange, onCustomBackgroundChange, isLoading }) => {
+const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onBackgroundChange, onCustomBackgroundChange, isLoading, isCollapsed, onToggleCollapse }) => {
   const [customPrompt, setCustomPrompt] = useState('');
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,63 +81,86 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onBackgroundChange, o
 
   return (
     <div className="pt-6 border-t border-gray-400/50">
-      <h2 className="text-xl font-serif tracking-wider text-gray-800 mb-4">Change Background</h2>
-      <div className="flex flex-col gap-6">
-        <div>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Create with AI</h3>
-            <div className="flex flex-col gap-2">
-                <textarea
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={isLoading}
-                    placeholder="A bustling Paris street in the rain with bokeh lights..."
-                    className="w-full p-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-colors disabled:bg-gray-100"
-                    rows={3}
-                    aria-label="Custom background prompt"
-                />
-                <button
-                    onClick={handleGenerateClick}
-                    disabled={isLoading || !customPrompt.trim()}
-                    className="w-full text-center bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ease-in-out hover:bg-gray-700 active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    title={ (customPrompt.trim() ? "Cmd/Ctrl + Enter to generate" : "")}
-                >
-                    Generate
-                </button>
-            </div>
-        </div>
-
-        {BACKGROUND_CATEGORIES.map((category) => (
-          <div key={category.name}>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">{category.name}</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {category.options.map((option) => (
-                <button
-                  key={option.name}
-                  onClick={() => onBackgroundChange(option.prompt)}
-                  disabled={isLoading}
-                  className="aspect-square text-center border border-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 ease-in-out hover:border-gray-400 active:scale-95 text-xs flex items-center justify-center p-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
-                  style={{ backgroundColor: option.type === 'color' ? option.value : '#FFFFFF' }}
-                  aria-label={`Change background to ${option.name}`}
-                >
-                  <span style={{ color: option.type === 'color' && ['#4B5563'].includes(option.value) ? 'white' : 'inherit' }}>
-                    {option.type === 'prompt' ? option.value : option.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        <div>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Upload Your Own</h3>
-            <label htmlFor="custom-bg-upload" className={`relative aspect-video w-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-gray-500 transition-colors ${isLoading ? 'cursor-not-allowed bg-gray-100' : 'hover:border-gray-400 hover:text-gray-600 cursor-pointer'}`}>
-                <ImageIcon className="w-8 h-8 mb-1"/>
-                <span className="text-sm font-semibold text-center">Upload Image</span>
-                <input id="custom-bg-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/webp, image/avif, image/heic, image/heif" onChange={handleFileChange} disabled={isLoading}/>
-            </label>
-        </div>
+      <div className={`flex items-center justify-between ${!isCollapsed ? 'mb-4' : ''}`}>
+        <h2 className="text-xl font-serif tracking-wider text-gray-800">Change Background</h2>
+        <button
+          onClick={onToggleCollapse}
+          className="p-1 rounded-full text-gray-500 hover:bg-gray-200/60 transition-colors"
+          aria-label={isCollapsed ? 'Expand background options' : 'Collapse background options'}
+        >
+          {isCollapsed ? <ChevronDownIcon className="w-6 h-6" /> : <ChevronUpIcon className="w-6 h-6" />}
+        </button>
       </div>
+
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            key="background-content"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-col gap-6">
+              <div>
+                  <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Create with AI</h3>
+                  <div className="flex flex-col gap-2">
+                      <textarea
+                          value={customPrompt}
+                          onChange={(e) => setCustomPrompt(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          disabled={isLoading}
+                          placeholder="A bustling Paris street in the rain with bokeh lights..."
+                          className="w-full p-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-colors disabled:bg-gray-100"
+                          rows={3}
+                          aria-label="Custom background prompt"
+                      />
+                      <button
+                          onClick={handleGenerateClick}
+                          disabled={isLoading || !customPrompt.trim()}
+                          className="w-full text-center bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ease-in-out hover:bg-gray-700 active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={ (customPrompt.trim() ? "Cmd/Ctrl + Enter to generate" : "")}
+                      >
+                          Generate
+                      </button>
+                  </div>
+              </div>
+
+              {BACKGROUND_CATEGORIES.map((category) => (
+                <div key={category.name}>
+                  <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">{category.name}</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {category.options.map((option) => (
+                      <button
+                        key={option.name}
+                        onClick={() => onBackgroundChange(option.prompt)}
+                        disabled={isLoading}
+                        className="aspect-square text-center border border-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 ease-in-out hover:border-gray-400 active:scale-95 text-xs flex items-center justify-center p-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
+                        style={{ backgroundColor: option.type === 'color' ? option.value : '#FFFFFF' }}
+                        aria-label={`Change background to ${option.name}`}
+                      >
+                        <span style={{ color: option.type === 'color' && ['#4B5563'].includes(option.value) ? 'white' : 'inherit' }}>
+                          {option.type === 'prompt' ? option.value : option.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              <div>
+                  <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Upload Your Own</h3>
+                  <label htmlFor="custom-bg-upload" className={`relative aspect-video w-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-gray-500 transition-colors ${isLoading ? 'cursor-not-allowed bg-gray-100' : 'hover:border-gray-400 hover:text-gray-600 cursor-pointer'}`}>
+                      <ImageIcon className="w-8 h-8 mb-1"/>
+                      <span className="text-sm font-semibold text-center">Upload Image</span>
+                      <input id="custom-bg-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/webp, image/avif, image/heic, image/heif" onChange={handleFileChange} disabled={isLoading}/>
+                  </label>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
