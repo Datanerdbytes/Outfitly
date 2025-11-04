@@ -192,8 +192,8 @@ const App: React.FC = () => {
         }
         return [...prev, garmentInfo];
       });
-    // Fix: Correctly handle errors by typing the catch clause variable as `unknown` and using a helper function for user-friendly error messages.
     } catch (err: unknown) {
+      // Fix: Correctly handle errors by typing the catch clause variable as `unknown` and using a helper function for user-friendly error messages.
       setError(getFriendlyErrorMessage(err, 'Failed to apply garment'));
     } finally {
       setIsLoading(false);
@@ -519,7 +519,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleClearWardrobe = useCallback(() => {
-    setWardrobe(defaultWardrobe);
+    setWardrobe(prev => prev.filter(item => !item.id.startsWith('custom-')));
   }, []);
 
   const handleUndo = useCallback(() => {
